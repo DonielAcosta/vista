@@ -8,7 +8,7 @@
         v-model="valid"
         lazy-validation
       >
-        <v-card-title>User Information</v-card-title>
+        <v-card-title> {{ edit ? 'Edit' : 'Create' }} User Information</v-card-title>
         <v-card-text>
           <v-container class="">
             <v-row>
@@ -159,6 +159,19 @@
                   </v-menu>
                 </div>
               </v-col>
+              <!-- <v-col xs="12" sm="12" md="6" lg="4"> -->
+                <!-- <v-select
+                  v-model="form.cityCode"
+                  :hint="`${select.state}, ${select.abbr}`"
+                  :items="items"
+                  item-text="state"
+                  item-value="abbr"
+                  label="Select"
+                  persistent-hint
+                  return-object
+                  single-line
+                /> -->
+              <!-- </v-col> -->
               <v-col xs="12" sm="12" md="6" lg="4">
                 <ValidationProvider
                   v-slot="{ errors }"
@@ -184,7 +197,7 @@
             class="mr-4"
             @click="handleSubmit(submit)"
           >
-            Save
+            {{ edit ? 'Update' : 'Create' }}
           </v-btn>
         </v-card-text>
       </v-form>
@@ -196,6 +209,7 @@
 export default {
   name: 'UserInfo',
   data: () => ({
+    edit: false,
     showPass: false,
     valid: true,
     form: {
@@ -211,16 +225,36 @@ export default {
     activePicker: null,
     date: null,
     menu: false,
-    select: null
+    select: null,
+    countries: [],
+    states: [],
+    cities: []
   }),
   watch: {
     menu (val) {
       val && setTimeout(() => (this.activePicker = 'YEAR'))
     }
   },
+  mounted () {
+    this.getCountries()
+  },
   methods: {
-    async submit () {
-      // await this.$axios.post('', )
+    submit () {
+      if (!this.edit) {
+        this.$axios.post('register', this.form).then((resp) => {
+          // console.log('El resp', resp)
+        })
+        // .catch((err) => {
+        //   // console.log('Error submit', err)
+        // })
+      } else {
+        this.$axios.put(`usersup/${this.form.id}`, this.form).then((resp) => {
+          // console.log('El resp', resp)
+        })
+        // .catch((err) => {
+        //   // console.log('Error submit', err)
+        // })
+      }
     },
     reset () {
       this.$refs.form.reset()
@@ -234,6 +268,15 @@ export default {
     getMaxDate () {
       const date = new Date()
       return new Date(date.setFullYear(new Date().getFullYear() - 18)).toISOString().substr(0, 10)
+    },
+    getCountries () {
+      this.$axios.get('https://countriesnow.space/api/v0.1/countries/iso')
+        .then((res) => {
+          this.countries = res.data.data
+        })
+        .catch((err) => {
+          console.log('Error =>', err)
+        })
     }
   }
 }
